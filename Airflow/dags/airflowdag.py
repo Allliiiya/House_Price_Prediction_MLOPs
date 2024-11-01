@@ -4,6 +4,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from src.data_prep import data_preprocessing, load_data, data_clean_test
+from src.tfdvdata_val import data_validation_tfdv
 
 
 # Define default arguments for your DAG
@@ -45,12 +46,25 @@ load_data_task = PythonOperator(
     dag=dag,
 )
 
+# Task to validate data, calls the 'data_validation_tfdv' Python function
+def validate_data_callable(**kwargs):
+    ti = kwargs['ti']
+    data = ti.xcom_pull(task_ids='load_data_task', key='data')
+    validated_data=data_validation_tfdv(data)
+    kwargs['ti'].xcom_push(key='validated_data', value=validated_data)
 
+data_validation_task = PythonOperator(
+    task_id='data_validation_task',
+    python_callable=validate_data_callable,
+    provide_context=True,
+    dag=dag,
+)
+   
 # Task to perform data preprocessing
 def data_preprocessing_callable(**kwargs):
     # Pull data from XCom
     ti = kwargs['ti']
-    data = ti.xcom_pull(task_ids='load_data_task', key='data')
+    data = ti.xcom_pull(task_ids='data_validation_task', key='validated_data')
     processed_data = data_preprocessing(data)
     # Push processed data to XCom
     ti.xcom_push(key='processed_data', value=processed_data)
@@ -85,4 +99,4 @@ dag_clean_test_task = PythonOperator(
 
 
 # Set task dependencies
-load_data_task >> data_preprocessing_task >> dag_clean_test_task
+load_data_task >> data_validation_task >> data_preprocessing_task >> dag_clean_test_task

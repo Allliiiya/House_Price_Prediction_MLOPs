@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 from kneed import KneeLocator # type: ignore
-from google.oauth2 import service_account
+from google.oauth2 import service_account # type: ignore
 from airflow.models import Variable
 import json
 from google.cloud import storage
