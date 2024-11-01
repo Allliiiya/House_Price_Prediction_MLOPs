@@ -1,0 +1,16 @@
+# Use the official Apache Airflow image with Python 3.8
+FROM apache/airflow:2.5.1-python3.8
+
+# Install gcc and g++ as root
+USER root
+RUN apt-get update && \
+    apt-get install -y gcc g++ && \
+    apt-get clean
+
+# Copy requirements.txt into the container
+COPY requirements.txt /requirements.txt
+
+# Switch to the airflow user and install Python dependencies
+USER airflow
+RUN pip install --upgrade pip && \
+    pip install -r /requirements.txt
