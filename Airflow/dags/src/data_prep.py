@@ -1,13 +1,13 @@
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.cluster import KMeans
-from kneed import KneeLocator # type: ignore
+#from sklearn.preprocessing import MinMaxScaler
+#from sklearn.cluster import KMeans
+#from kneed import KneeLocator # type: ignore
 from google.oauth2 import service_account
 from airflow.models import Variable
-import json
+#import json
 from google.cloud import storage
-import pickle
-import os
+#import pickle
+#import os
 import logging
 
 

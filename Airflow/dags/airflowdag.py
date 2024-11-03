@@ -1,11 +1,12 @@
-import pandas as pd
-import logging
+#import pandas as pd
+import logging 
 import json
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from src.data_prep import load_data, data_overview, data_validation, data_cleaning
 from src.encoding import encode_data
+from src.tfdvdata_val import data_validation_tfdv
 
 # Define default arguments for your DAG
 default_args = {
@@ -57,15 +58,31 @@ data_overview_task = PythonOperator(
     dag=dag,
 )
 
+# Task to validate data, calls the 'data_validation_tfdv' Python function
+def tfdv_validate_data_callable(**kwargs):
+    ti = kwargs['ti']
+    data = ti.xcom_pull(task_ids='data_overview_task', key='overview_data')
+    if data is None:
+        logging.error("No data found in XCom for key 'overview_data'")
+    else:
+        tfdv_validated_data=data_validation_tfdv(data)
+        kwargs['ti'].xcom_push(key='tfdv_validated_data', value=tfdv_validated_data)
+
+data_validation_tfdv_task = PythonOperator(
+    task_id='data_validation_tfdv_task',
+    python_callable=tfdv_validate_data_callable,
+    provide_context=True,
+    dag=dag,
+)
 # Task to perform data validation
 def data_validation_callable(**kwargs):
     # Pull data from XCom
     ti = kwargs['ti']
-    overview_data = ti.xcom_pull(task_ids='data_overview_task', key='overview_data')
-    if overview_data is None:
+    tfdv_validated_data = ti.xcom_pull(task_ids='data_validation_tfdv_task', key='tfdv_validated_data')
+    if tfdv_validated_data is None:
         logging.error("No data found in XCom for key 'overview_data'")
     else:
-        validated_data = data_validation(overview_data)
+        validated_data = data_validation(tfdv_validated_data)
         # Push validated data to XCom
         ti.xcom_push(key='validated_data', value=validated_data)
 
@@ -114,4 +131,4 @@ encode_data_task = PythonOperator(
 )
 
 # Set task dependencies
-load_data_task >> data_overview_task >> data_validation_task >> data_cleaning_task  >> encode_data_task
+load_data_task >> data_validation_tfdv_task >> data_overview_task >> data_validation_task >> data_cleaning_task  >> encode_data_task
