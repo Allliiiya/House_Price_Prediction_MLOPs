@@ -1,13 +1,16 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
+#import os
 import logging
+import mlflow
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from airflow.models import Variable
 from src.bias_detection import detect_model_bias, evaluate_bias_disparity
+from src.modeling_and_evaluation import compare_models_with_mlflow, initialize_mlflow
 
 # Define default arguments for your DAG
 default_args = {
@@ -26,7 +29,21 @@ dag3 = DAG(
     catchup=False,
     max_active_runs=1,
 )
+'''
+# Initialize MLflow and ngrok
+def initialize_mlflow_callable():
+    os.system("lsof -t -i:5000 | xargs kill -9")  # Terminate any process using port 5000
+    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.end_run()  # Ensure no active run
+    # Initialize MLflow and ngrok
+    initialize_mlflow()
 
+initialize_mlflow_task = PythonOperator(
+    task_id='initialize_mlflow_task',
+    python_callable=initialize_mlflow_callable,
+    dag=dag3,
+)
+'''
 # Task to train the model and make predictions
 def train_and_predict_callable(**kwargs):
     ti = kwargs['ti']
@@ -38,10 +55,8 @@ def train_and_predict_callable(**kwargs):
     test_data = conf.get('test_data')
     combined_features = conf.get('combined_features')
 
-
     # Pull combined features from XCom
     # combined_features = ti.xcom_pull(task_ids='feature_selection_task', key='combined_features')
-
 
     augmented_data = pd.read_json(augmented_data, orient='split')
     test_data = pd.read_json(test_data, orient='split')
@@ -61,7 +76,7 @@ def train_and_predict_callable(**kwargs):
 
     # Push predictions to XCom
     ti.xcom_push(key='y_pred', value=y_pred.tolist())
-
+    ti.xcom_push(key='model', value=model)
     print(combined_features)
 
 train_and_predict_task = PythonOperator(
@@ -105,7 +120,6 @@ def evaluate_and_compare_models_callable(**kwargs):
     logging.info(f"Evaluation metrics:\n{comparison_df}")
     ti.xcom_push(key='comparison_metrics', value=comparison_df.to_json(orient='split'))
 
-    # print(augmented_data.head())
 
 evaluate_and_compare_task = PythonOperator(
     task_id='evaluate_and_compare_task',
@@ -114,6 +128,28 @@ evaluate_and_compare_task = PythonOperator(
     dag=dag3,
 )
 
+def mlflow_callable(**kwargs):
+    """Task to load data."""
+    # Access the configuration
+    conf = kwargs.get("dag_run").conf
+    # Retrieve encoded_result from the conf dictionary
+    train_data = conf.get('train_data')
+    test_data = conf.get('test_data')
+    augmented_data = conf.get('augmented_data')
+
+    # Define your data here
+    # Assuming train_data, augmented_data, and test_data are already defined
+    comparison_results = compare_models_with_mlflow(train_data, augmented_data, test_data)
+    print(comparison_results)
+
+
+
+mlflow_task = PythonOperator(
+    task_id='mlflow_task',
+    python_callable=mlflow_callable,
+    provide_context=True,
+    dag=dag3,
+)
 
 def detect_model_bias_callable(**kwargs):
 
@@ -137,13 +173,11 @@ def detect_model_bias_callable(**kwargs):
     # Push bias metrics to XCom
     ti.xcom_push(key='bias_metrics', value=bias_metrics.to_json(orient='split'))
 
-
 bias_detection_task = PythonOperator(
 task_id='detect_model_bias_task',
 python_callable=detect_model_bias_callable,
 provide_context=True,
 dag=dag3,)
-
 
 def evaluate_bias_disparity_callable(**kwargs):
 
@@ -173,6 +207,7 @@ provide_context=True,
 dag=dag3,)
 
 
-
 # Set dependencies for tasks within dag3
-train_and_predict_task >> evaluate_and_compare_task >> bias_detection_task >> bias_disparity_evaluation_task
+train_and_predict_task >> evaluate_and_compare_task >> bias_detection_task >> bias_disparity_evaluation_task >> mlflow_task
+#initialize_mlflow_task >> train_and_predict_task >> evaluate_and_compare_task >> bias_detection_task >> bias_disparity_evaluation_task
+
