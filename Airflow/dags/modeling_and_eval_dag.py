@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-import os
+#import os
 import logging
 import mlflow
 import pandas as pd
@@ -10,7 +10,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from airflow.models import Variable
 from src.bias_detection import detect_model_bias, evaluate_bias_disparity
-from matplotlib import pyplot as plt
+from src.modeling_and_evaluation import compare_models_with_mlflow, initialize_mlflow
 
 # Define default arguments for your DAG
 default_args = {
@@ -29,17 +29,21 @@ dag3 = DAG(
     catchup=False,
     max_active_runs=1,
 )
+'''
 # Initialize MLflow and ngrok
 def initialize_mlflow_callable():
     os.system("lsof -t -i:5000 | xargs kill -9")  # Terminate any process using port 5000
     mlflow.set_tracking_uri("http://127.0.0.1:5000")
     mlflow.end_run()  # Ensure no active run
+    # Initialize MLflow and ngrok
+    initialize_mlflow()
 
 initialize_mlflow_task = PythonOperator(
     task_id='initialize_mlflow_task',
     python_callable=initialize_mlflow_callable,
     dag=dag3,
 )
+'''
 # Task to train the model and make predictions
 def train_and_predict_callable(**kwargs):
     ti = kwargs['ti']
@@ -116,27 +120,33 @@ def evaluate_and_compare_models_callable(**kwargs):
     logging.info(f"Evaluation metrics:\n{comparison_df}")
     ti.xcom_push(key='comparison_metrics', value=comparison_df.to_json(orient='split'))
 
-    # print(augmented_data.head())
-# Log metrics to MLflow
-    mlflow.set_experiment("House Price Prediction")
-    model = ti.xcom_pull(task_ids='train_and_predict_task', key='model')
-    with mlflow.start_run(run_name="Evaluation"):
-        mlflow.log_metrics({"MAE": mae, "MSE": mse, "RMSE": rmse, "R2": r2})
-        mlflow.sklearn.log_model(model, "linear_regression_model")
-        # Save comparison plot
-        fig, ax = plt.subplots(figsize=(6, 4))
-        comparison_df.set_index("Metric").plot(kind="bar", ax=ax)
-        plt.tight_layout()
-        plot_path = "/tmp/comparison_plot.png"
-        plt.savefig(plot_path)
-        mlflow.log_artifact(plot_path)
-
-    # Push comparison metrics to XCom
-    ti.xcom_push(key='comparison_metrics', value=comparison_df.to_json(orient='split'))
 
 evaluate_and_compare_task = PythonOperator(
     task_id='evaluate_and_compare_task',
     python_callable=evaluate_and_compare_models_callable,
+    provide_context=True,
+    dag=dag3,
+)
+
+def mlflow_callable(**kwargs):
+    """Task to load data."""
+    # Access the configuration
+    conf = kwargs.get("dag_run").conf
+    # Retrieve encoded_result from the conf dictionary
+    train_data = conf.get('train_data')
+    test_data = conf.get('test_data')
+    augmented_data = conf.get('augmented_data')
+
+    # Define your data here
+    # Assuming train_data, augmented_data, and test_data are already defined
+    comparison_results = compare_models_with_mlflow(train_data, augmented_data, test_data)
+    print(comparison_results)
+
+
+
+mlflow_task = PythonOperator(
+    task_id='mlflow_task',
+    python_callable=mlflow_callable,
     provide_context=True,
     dag=dag3,
 )
@@ -198,6 +208,6 @@ dag=dag3,)
 
 
 # Set dependencies for tasks within dag3
-
-initialize_mlflow_task >> train_and_predict_task >> evaluate_and_compare_task >> bias_detection_task >> bias_disparity_evaluation_task
+train_and_predict_task >> evaluate_and_compare_task >> bias_detection_task >> bias_disparity_evaluation_task >> mlflow_task
+#initialize_mlflow_task >> train_and_predict_task >> evaluate_and_compare_task >> bias_detection_task >> bias_disparity_evaluation_task
 
