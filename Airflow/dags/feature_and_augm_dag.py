@@ -74,12 +74,14 @@ def feature_selection_callable(**kwargs):
     # Load the encoded data
     df = pd.read_json(encoded_data_json)
     target = 'SalePrice'
+    prefix_for_bldg_type = 'Bldg Type_'
+
     # Identify one-hot encoded categorical columns
     categorical_features = [col for col in df.columns if col not in numerical_features + [target]]
     # Step 1: Select features based on correlation
     selected_features = select_correlated_features(encoded_data_json, numerical_features, target, threshold=0.3)
     # Step 2: Rank features using Lasso and further refine the selection
-    final_features = rank_features_by_lasso(encoded_data_json, selected_features, target, threshold=0.1)
+    final_features = rank_features_by_lasso(encoded_data_json, selected_features, target, threshold=0.01)
     # Step 3: Select categorical features using Random Forest
     selected_categorical_features = select_categorical_features_by_rf(
         encoded_data=encoded_data_json,  # Pass JSON-encoded dataset
@@ -87,13 +89,20 @@ def feature_selection_callable(**kwargs):
         target=target,
         threshold=0.01
     )
-    # Step 4: Combine numerical and categorical features
-    combined_features = list(set(final_features + selected_categorical_features))  # Remove duplicates
+
+     # Step 4: Include one-hot encoded features for `Bldg Type`
+    bldg_type_encoded_features = [col for col in df.columns if col.startswith(prefix_for_bldg_type)]
+    # Log encoded Bldg Type features
+    logging.info(f"Encoded Bldg Type features: {bldg_type_encoded_features}")
+
+    # Step 5: Combine numerical and categorical features
+    combined_features = list(set(final_features + selected_categorical_features + bldg_type_encoded_features))  # Remove duplicates
+    
     # Push combined features to XCom
     ti.xcom_push(key='combined_features', value=combined_features)
     # Push categorical features to XCom
     ti.xcom_push(key='selected_categorical_features', value=selected_categorical_features)
-    # Push final selected features to XCom for use in subsequent tasks
+    # Push final selected numerical features to XCom for use in subsequent tasks
     ti.xcom_push(key='final_features', value=final_features)
 
 
@@ -109,12 +118,15 @@ feature_selection_task = PythonOperator(
 def data_augmentation_callable(**kwargs):
     """Task to augment data."""
     ti = kwargs['ti']
+
     train_data_json = ti.xcom_pull(task_ids='data_split_task', key='train_data')
-    final_features = ti.xcom_pull(task_ids='feature_selection_task', key='final_features')
+    final_features = ti.xcom_pull(task_ids='feature_selection_task', key='final_features') # final feature means numerical features
     combined_features = ti.xcom_pull(task_ids='feature_selection_task', key='combined_features')
+
     if train_data_json is None or final_features is None:
         raise ValueError("Required data not found in XCom")
     train_data = pd.read_json(train_data_json, orient='split')
+    
     augmented_data = augment_data_with_perturbations(
         train_data, final_features, perturbation_percentage=0.02
     )
@@ -158,3 +170,4 @@ trigger_dag3_task = PythonOperator(
 
 # Set dependencies
 data_split_task >> feature_selection_task >> data_augmentation_task >> trigger_dag3_task
+

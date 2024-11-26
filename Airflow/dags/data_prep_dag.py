@@ -135,6 +135,15 @@ def encode_data_callable(**kwargs):
             raise ValueError("No data found in XCom for key 'cleaned_data'")
         # Encode data using updated encode_data function (one-hot encoding)
         encoded_result = encode_data(cleaned_data)
+
+        # # Log the columns of the encoded data before serialization
+        # column_names = list(encoded_result.columns)
+        # logging.info(f"Encoded columns: {column_names}")
+        
+        # # Log the number of features after encoding
+        # num_features = len(column_names)
+        # logging.info(f"Number of features after one-hot encoding: {num_features}")
+
         # Push the encoded data as a JSON string
         ti.xcom_push(key='encoded_result', value=encoded_result)
         logging.info("Data encoding (one-hot) completed successfully")

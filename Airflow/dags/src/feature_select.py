@@ -101,7 +101,7 @@ def select_categorical_features_by_rf(encoded_data, selected_features, target, t
 
     # Extract feature matrix (X) and target variable (y)
     X = df.drop(columns=[target])  # Exclude target column
-    X = pd.get_dummies(X, drop_first=True)  # One-hot encoding
+    # X = pd.get_dummies(X, drop_first=True)  # One-hot encoding
     y = df[target]
 
     # Fit a Random Forest Regressor
