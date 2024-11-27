@@ -158,3 +158,113 @@ pytest tests/
 - **[Apache Airflow Documentation](https://airflow.apache.org/docs/)**: Official documentation for setting up and using Apache Airflow.
 - **[Google Cloud SDK](https://cloud.google.com/sdk/docs)**: Guide for configuring GCS and managing data storage.
 - **[DVC Documentation](https://dvc.org/doc)**: Guide for setting up DVC for data versioning.
+
+# **Running MLflow UI in an Airflow Container**
+
+This guide explains how to run the **MLflow UI** from an Airflow container in a Dockerized environment. It assumes you already have an Airflow setup running using `docker-compose` and MLflow installed in the containers via `_PIP_ADDITIONAL_REQUIREMENTS`.
+
+---
+
+## **Prerequisites**
+
+1. **Airflow Setup**: Ensure your Airflow containers are running and properly configured in the `docker-compose.yaml` file.
+2. **MLflow Installed**: MLflow should be included in the `_PIP_ADDITIONAL_REQUIREMENTS` of your Airflow setup:
+   ```yaml
+   _PIP_ADDITIONAL_REQUIREMENTS: "mlflow pandas scikit-learn kneed google-cloud-storage"
+   ```
+3. **Shared Volume**: The `mlruns` directory should be mounted to `/opt/airflow/mlruns` for consistent tracking:
+   ```yaml
+   volumes:
+     - ./mlruns:/opt/airflow/mlruns
+   ```
+
+---
+
+## **Steps to Run MLflow UI**
+
+### **1. Start Airflow Containers**
+Start your Airflow setup:
+```bash
+docker-compose up -d
+```
+
+Ensure all containers are running:
+```bash
+docker ps
+```
+
+### **2. Access the Desired Container**
+Decide which Airflow container will host the MLflow UI. Typically, this will be the **worker** or **webserver** container. Enter the container:
+```bash
+docker exec -it airflow-airflow-worker-1 bash
+```
+*(Replace `airflow-airflow-worker-1` with the name of the desired container.)*
+
+### **3. Start the MLflow UI**
+Inside the container, start the MLflow UI:
+```bash
+mlflow ui --backend-store-uri postgresql+psycopg2://airflow:airflow@postgres/mlflow --host 0.0.0.0
+```
+
+- **`--backend-store-uri`**: Specifies the location of the MLflow tracking directory.
+- **`--host`**: Ensures the UI is accessible from outside the container.
+
+### **4. Access the MLflow UI**
+The UI will be available at:
+```
+http://localhost:5000
+```
+
+If port **5000** is already in use, you can specify a different port:
+```bash
+mlflow ui --backend-store-uri file:///opt/airflow/mlruns --host 0.0.0.0 --port 5001
+```
+Ensure the port is mapped in your `docker-compose.yaml`:
+```yaml
+ports:
+  - "5001:5001"
+```
+
+---
+
+## **Stopping the MLflow UI**
+
+### **1. If Running in the Foreground**
+Stop the process by pressing:
+```
+Ctrl + C
+```
+
+### **2. If Running in the Background**
+Find the MLflow process ID (PID) and terminate it:
+```bash
+ps aux | grep 'mlflow'
+kill <PID>
+```
+
+---
+
+## **Notes**
+
+- For modular setups, consider running the MLflow UI in a dedicated container for better scalability and separation of concerns.
+- Make sure the `mlruns` directory is shared between the container running the MLflow UI and the container where Airflow logs experiments.
+
+---
+
+## **Troubleshooting**
+
+1. **Cannot Access MLflow UI**:
+   - Verify that port **5000** is mapped correctly in the `docker-compose.yaml`.
+   - Check if another process is using port **5000**:
+     ```bash
+     sudo ss -tuln | grep 5000
+     ```
+
+2. **Permission Issues**:
+   Ensure the `mlruns` directory has the correct permissions:
+   ```bash
+   chmod -R 755 ./mlruns
+   ```
+
+---
+
