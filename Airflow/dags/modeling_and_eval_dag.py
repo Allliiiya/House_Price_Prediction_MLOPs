@@ -9,7 +9,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from airflow.models import Variable
 from src.bias_detection import detect_model_bias, evaluate_bias_disparity
 from src.model_rf import train_and_predict_rf
-from src.modeling_and_evaluation import train_and_predict
+from src.model_linear_regression import train_and_predict_linear_regression
 from src.model_rf import evaluate_model
 from src.model_elastic_net import train_and_predict_elastic_net
 
@@ -32,7 +32,7 @@ dag3 = DAG(
 )
 
 # Task to train the linear regression model and make predictions
-def train_and_predict_callable(**kwargs):
+def train_and_predict_linear_regression_callable(**kwargs):
     ti = kwargs['ti']
 
     # Access the configuration passed from dag1
@@ -41,7 +41,6 @@ def train_and_predict_callable(**kwargs):
     augmented_data = conf.get('augmented_data')
     test_data = conf.get('test_data')
     combined_features = conf.get('combined_features')
-    
 
     # Pull combined features from XCom
     # combined_features = ti.xcom_pull(task_ids='feature_selection_task', key='combined_features')
@@ -61,16 +60,16 @@ def train_and_predict_callable(**kwargs):
     # model = LinearRegression()
     # model.fit(X_train, y_train)
     # y_pred = model.predict(X_test)
-    y_pred, model = train_and_predict(augmented_data, test_data, combined_features)
+    y_pred, model = train_and_predict_linear_regression(augmented_data, test_data, combined_features)
 
     # Push predictions to XCom
-    ti.xcom_push(key='y_pred', value=y_pred.tolist())
+    ti.xcom_push(key='linear_y_pred', value=y_pred.tolist())
 
     print(combined_features)
 
-train_and_predict_task = PythonOperator(
-    task_id='train_and_predict_task',
-    python_callable=train_and_predict_callable,
+train_and_predict_linear_regression_task = PythonOperator(
+    task_id='train_and_predict_linear_regression_task',
+    python_callable=train_and_predict_linear_regression_callable,
     provide_context=True,
     dag=dag3,
 )
@@ -139,7 +138,7 @@ def evaluate_and_compare_models_callable(**kwargs):
     # y_pred = np.array(ti.xcom_pull(task_ids='train_and_predict_task', key='y_pred'))
 
      # Pull predictions for both models
-    linear_y_pred = ti.xcom_pull(task_ids='train_and_predict_task', key='y_pred')  # Linear regression
+    linear_y_pred = ti.xcom_pull(task_ids='train_and_predict_linear_regression_task', key='linear_y_pred')  # Linear regression
     rf_y_pred = ti.xcom_pull(task_ids='train_and_predict_rf_task', key='rf_y_pred')  # Random Forest
     elastic_y_pred = ti.xcom_pull(task_ids='train_and_predict_elastic_task', key='elastic_net_y_pred')  # Elastic net
 
@@ -220,12 +219,12 @@ def detect_model_bias_callable(**kwargs):
     # y_pred = np.array(ti.xcom_pull(task_ids='train_and_predict_task', key='y_pred'))
 
     # Pull predictions from XCom
-    linear_y_pred = ti.xcom_pull(task_ids='train_and_predict_task', key='y_pred')  # Linear Regression
+    linear_y_pred = ti.xcom_pull(task_ids='train_and_predict_linear_regression_task', key='linear_y_pred')  # Linear Regression
     rf_y_pred = ti.xcom_pull(task_ids='train_and_predict_rf_task', key='rf_y_pred')  # Random Forest
     elastic_y_pred = ti.xcom_pull(task_ids='train_and_predict_elastic_task', key='elastic_net_y_pred')  # Random Forest
 
 
-    if test_data_json is None or (linear_y_pred is None and rf_y_pred is None):
+    if test_data_json is None or (linear_y_pred is None and rf_y_pred and elastic_y_pred is None):
         raise ValueError("Required data not found in XCom for 'test_data' or predictions")
 
     test_data = pd.read_json(test_data_json, orient='split')
@@ -338,4 +337,4 @@ dag=dag3,)
 
 
 # Set dependencies for tasks within dag3
-[train_and_predict_task, train_and_predict_rf_task, train_and_predict_elastic_net_task]>> evaluate_and_compare_task >> bias_detection_task >> bias_disparity_evaluation_task
+[train_and_predict_linear_regression_task, train_and_predict_rf_task, train_and_predict_elastic_net_task]>> evaluate_and_compare_task >> bias_detection_task >> bias_disparity_evaluation_task

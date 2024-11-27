@@ -4,7 +4,7 @@ import mlflow
 import mlflow.sklearn
 import numpy as np
 import pandas as pd
-from src.modeling_and_evaluation import evaluate_model
+from src.model_linear_regression import evaluate_model
 
 # Function to train the model and make predictions
 def train_and_predict_elastic_net(augmented_data, test_data, combined_features):
