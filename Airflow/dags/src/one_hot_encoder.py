@@ -28,5 +28,5 @@ def encode_data(data):
     df_encoded = encode_one_hot_columns(df)
 
     # Save the encoded data back to the same file path
-    serialized_data = df.to_json()
+    serialized_data = df_encoded.to_json()
     return serialized_data
