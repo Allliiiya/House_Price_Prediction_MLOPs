@@ -1,0 +1,74 @@
+name: Lightweight Test Airflow DAGs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Airflow/dags/**"
+
+jobs:
+  validate-dags:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # Step 3: Install Airflow and DAG Dependencies
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install apache-airflow
+          if [ -f Airflow/requirements.txt ]; then
+            pip install -r Airflow/requirements.txt
+          fi
+
+      # Step 4: Set AIRFLOW_HOME to Airflow Directory
+      - name: Configure AIRFLOW_HOME
+        run: |
+          export AIRFLOW_HOME=$(pwd)/Airflow
+
+      # Step 5: Initialize Airflow Database
+      - name: Initialize Airflow Database
+        run: |
+          export AIRFLOW_HOME=$(pwd)/Airflow
+          airflow db init
+      # ----> Ensures the database is initialized in the correct Airflow directory.
+      
+      # Step 6: Lint DAG Files
+      - name: Lint DAG Files
+        run: |
+          pip install flake8
+          flake8 Airflow/dags/ --max-line-length=120
+
+      # Step 7: Validate DAG Syntax
+      - name: Validate DAG Syntax
+        run: |
+          export AIRFLOW_HOME=$(pwd)/Airflow
+          for dag in Airflow/dags/*.py; do
+            echo "Validating $dag"
+            python "$dag"
+          done
+
+      # Step 8: Test Airflow DAGs (Mock Execution)
+      - name: Test DAG Execution
+        run: |
+          export AIRFLOW_HOME=$(pwd)/Airflow
+          pip install apache-airflow[testing]
+          echo "Testing DAG: DAG_Data_Preprocessing"
+          airflow dags test DAG_Data_Preprocessing 2024-01-01
+      # ----> Adjusted for the Airflow directory structure.
+
+      # Step 9: Generate and Lock Dependencies
+      - name: Lock Dependencies
+        run: |
+          pip freeze > Airflow/locked-requirements.txt
+          echo "Dependencies locked in Airflow/locked-requirements.txt"

@@ -1,0 +1,38 @@
+[2024-11-15T21:41:59.793+0000] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DAG_feature_select_and_data_augmentation.trigger_model_training_and_evaluation manual__2024-11-15T21:40:57.607447+00:00 [queued]>
+[2024-11-15T21:41:59.889+0000] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DAG_feature_select_and_data_augmentation.trigger_model_training_and_evaluation manual__2024-11-15T21:40:57.607447+00:00 [queued]>
+[2024-11-15T21:41:59.889+0000] {taskinstance.py:1279} INFO - 
+--------------------------------------------------------------------------------
+[2024-11-15T21:41:59.890+0000] {taskinstance.py:1280} INFO - Starting attempt 1 of 1
+[2024-11-15T21:41:59.890+0000] {taskinstance.py:1281} INFO - 
+--------------------------------------------------------------------------------
+[2024-11-15T21:41:59.941+0000] {taskinstance.py:1300} INFO - Executing <Task(PythonOperator): trigger_model_training_and_evaluation> on 2024-11-15 21:40:57.607447+00:00
+[2024-11-15T21:41:59.949+0000] {standard_task_runner.py:55} INFO - Started process 400 to run task
+[2024-11-15T21:41:59.953+0000] {standard_task_runner.py:82} INFO - Running: ['***', 'tasks', 'run', 'DAG_feature_select_and_data_augmentation', 'trigger_model_training_and_evaluation', 'manual__2024-11-15T21:40:57.607447+00:00', '--job-id', '73', '--raw', '--subdir', 'DAGS_FOLDER/feature_and_augm_dag.py', '--cfg-path', '/tmp/tmpi9188nq_']
+[2024-11-15T21:41:59.956+0000] {standard_task_runner.py:83} INFO - Job 73: Subtask trigger_model_training_and_evaluation
+[2024-11-15T21:42:00.136+0000] {task_command.py:388} INFO - Running <TaskInstance: DAG_feature_select_and_data_augmentation.trigger_model_training_and_evaluation manual__2024-11-15T21:40:57.607447+00:00 [running]> on host 8a9381cefcd7
+[2024-11-15T21:42:00.275+0000] {taskinstance.py:1509} INFO - Exporting the following env vars:
+AIRFLOW_CTX_DAG_OWNER=House_Price_Prediction Team
+AIRFLOW_CTX_DAG_ID=DAG_feature_select_and_data_augmentation
+AIRFLOW_CTX_TASK_ID=trigger_model_training_and_evaluation
+AIRFLOW_CTX_EXECUTION_DATE=2024-11-15T21:40:57.607447+00:00
+AIRFLOW_CTX_TRY_NUMBER=1
+AIRFLOW_CTX_DAG_RUN_ID=manual__2024-11-15T21:40:57.607447+00:00
+[2024-11-15T21:42:00.388+0000] {taskinstance.py:1768} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.7/site-packages/airflow/operators/python.py", line 175, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.7/site-packages/airflow/operators/python.py", line 192, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/feature_and_augm_dag.py", line 169, in trigger_dag3_with_conf
+    ).execute(kwargs)  # Pass Airflow context to execute method
+  File "/home/airflow/.local/lib/python3.7/site-packages/airflow/operators/trigger_dagrun.py", line 144, in execute
+    replace_microseconds=False,
+  File "/home/airflow/.local/lib/python3.7/site-packages/airflow/api/common/trigger_dag.py", line 128, in trigger_dag
+    replace_microseconds=replace_microseconds,
+  File "/home/airflow/.local/lib/python3.7/site-packages/airflow/api/common/trigger_dag.py", line 52, in _trigger_dag
+    raise DagNotFound(f"Dag id {dag_id} not found")
+airflow.exceptions.DagNotFound: Dag id DAG_Model_Training_and_Evaluation not found
+[2024-11-15T21:42:00.397+0000] {taskinstance.py:1323} INFO - Marking task as FAILED. dag_id=DAG_feature_select_and_data_augmentation, task_id=trigger_model_training_and_evaluation, execution_date=20241115T214057, start_date=20241115T214159, end_date=20241115T214200
+[2024-11-15T21:42:00.453+0000] {standard_task_runner.py:105} ERROR - Failed to execute job 73 for task trigger_model_training_and_evaluation (Dag id DAG_Model_Training_and_Evaluation not found; 400)
+[2024-11-15T21:42:00.503+0000] {local_task_job.py:208} INFO - Task exited with return code 1
+[2024-11-15T21:42:00.560+0000] {taskinstance.py:2578} INFO - 0 downstream tasks scheduled from follow-on schedule check

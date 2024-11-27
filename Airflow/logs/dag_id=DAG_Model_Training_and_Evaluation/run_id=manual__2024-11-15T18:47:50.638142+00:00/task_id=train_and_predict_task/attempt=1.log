@@ -1,0 +1,46 @@
+[2024-11-15T18:47:57.258+0000] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DAG_Model_Training_and_Evaluation.train_and_predict_task manual__2024-11-15T18:47:50.638142+00:00 [queued]>
+[2024-11-15T18:47:57.293+0000] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DAG_Model_Training_and_Evaluation.train_and_predict_task manual__2024-11-15T18:47:50.638142+00:00 [queued]>
+[2024-11-15T18:47:57.294+0000] {taskinstance.py:1279} INFO - 
+--------------------------------------------------------------------------------
+[2024-11-15T18:47:57.295+0000] {taskinstance.py:1280} INFO - Starting attempt 1 of 1
+[2024-11-15T18:47:57.295+0000] {taskinstance.py:1281} INFO - 
+--------------------------------------------------------------------------------
+[2024-11-15T18:47:57.336+0000] {taskinstance.py:1300} INFO - Executing <Task(PythonOperator): train_and_predict_task> on 2024-11-15 18:47:50.638142+00:00
+[2024-11-15T18:47:57.347+0000] {standard_task_runner.py:55} INFO - Started process 118 to run task
+[2024-11-15T18:47:57.351+0000] {standard_task_runner.py:82} INFO - Running: ['***', 'tasks', 'run', 'DAG_Model_Training_and_Evaluation', 'train_and_predict_task', 'manual__2024-11-15T18:47:50.638142+00:00', '--job-id', '57', '--raw', '--subdir', 'DAGS_FOLDER/modeling_and_eval_dag.py', '--cfg-path', '/tmp/tmpndxr5hoe']
+[2024-11-15T18:47:57.354+0000] {standard_task_runner.py:83} INFO - Job 57: Subtask train_and_predict_task
+[2024-11-15T18:47:57.469+0000] {task_command.py:388} INFO - Running <TaskInstance: DAG_Model_Training_and_Evaluation.train_and_predict_task manual__2024-11-15T18:47:50.638142+00:00 [running]> on host a95df74735a7
+[2024-11-15T18:47:57.618+0000] {taskinstance.py:1509} INFO - Exporting the following env vars:
+AIRFLOW_CTX_DAG_OWNER=House_Price_Prediction Team
+AIRFLOW_CTX_DAG_ID=DAG_Model_Training_and_Evaluation
+AIRFLOW_CTX_TASK_ID=train_and_predict_task
+AIRFLOW_CTX_EXECUTION_DATE=2024-11-15T18:47:50.638142+00:00
+AIRFLOW_CTX_TRY_NUMBER=1
+AIRFLOW_CTX_DAG_RUN_ID=manual__2024-11-15T18:47:50.638142+00:00
+[2024-11-15T18:47:57.624+0000] {taskinstance.py:1768} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.7/site-packages/airflow/operators/python.py", line 175, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.7/site-packages/airflow/operators/python.py", line 192, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/modeling_and_eval_dag.py", line 46, in train_and_predict_callable
+    augmented_data = pd.read_json(augmented_data, orient='split')
+  File "/home/airflow/.local/lib/python3.7/site-packages/pandas/util/_decorators.py", line 207, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.7/site-packages/pandas/util/_decorators.py", line 311, in wrapper
+    return func(*args, **kwargs)
+  File "/home/airflow/.local/lib/python3.7/site-packages/pandas/io/json/_json.py", line 607, in read_json
+    encoding_errors=encoding_errors,
+  File "/home/airflow/.local/lib/python3.7/site-packages/pandas/io/json/_json.py", line 675, in __init__
+    data = self._get_data_from_filepath(filepath_or_buffer)
+  File "/home/airflow/.local/lib/python3.7/site-packages/pandas/io/json/_json.py", line 718, in _get_data_from_filepath
+    errors=self.encoding_errors,
+  File "/home/airflow/.local/lib/python3.7/site-packages/pandas/io/common.py", line 614, in get_handle
+    storage_options=storage_options,
+  File "/home/airflow/.local/lib/python3.7/site-packages/pandas/io/common.py", line 396, in _get_filepath_or_buffer
+    raise ValueError(msg)
+ValueError: Invalid file path or buffer object type: <class 'NoneType'>
+[2024-11-15T18:47:57.663+0000] {taskinstance.py:1323} INFO - Marking task as FAILED. dag_id=DAG_Model_Training_and_Evaluation, task_id=train_and_predict_task, execution_date=20241115T184750, start_date=20241115T184757, end_date=20241115T184757
+[2024-11-15T18:47:57.685+0000] {standard_task_runner.py:105} ERROR - Failed to execute job 57 for task train_and_predict_task (Invalid file path or buffer object type: <class 'NoneType'>; 118)
+[2024-11-15T18:47:57.701+0000] {local_task_job.py:208} INFO - Task exited with return code 1
+[2024-11-15T18:47:57.741+0000] {taskinstance.py:2578} INFO - 0 downstream tasks scheduled from follow-on schedule check

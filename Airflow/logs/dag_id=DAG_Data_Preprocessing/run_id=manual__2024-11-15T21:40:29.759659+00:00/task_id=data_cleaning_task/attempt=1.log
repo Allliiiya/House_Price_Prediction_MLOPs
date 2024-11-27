@@ -1,0 +1,25 @@
+[2024-11-15T21:40:51.812+0000] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DAG_Data_Preprocessing.data_cleaning_task manual__2024-11-15T21:40:29.759659+00:00 [queued]>
+[2024-11-15T21:40:51.825+0000] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DAG_Data_Preprocessing.data_cleaning_task manual__2024-11-15T21:40:29.759659+00:00 [queued]>
+[2024-11-15T21:40:51.825+0000] {taskinstance.py:1279} INFO - 
+--------------------------------------------------------------------------------
+[2024-11-15T21:40:51.825+0000] {taskinstance.py:1280} INFO - Starting attempt 1 of 2
+[2024-11-15T21:40:51.826+0000] {taskinstance.py:1281} INFO - 
+--------------------------------------------------------------------------------
+[2024-11-15T21:40:51.844+0000] {taskinstance.py:1300} INFO - Executing <Task(PythonOperator): data_cleaning_task> on 2024-11-15 21:40:29.759659+00:00
+[2024-11-15T21:40:51.851+0000] {standard_task_runner.py:55} INFO - Started process 295 to run task
+[2024-11-15T21:40:51.855+0000] {standard_task_runner.py:82} INFO - Running: ['***', 'tasks', 'run', 'DAG_Data_Preprocessing', 'data_cleaning_task', 'manual__2024-11-15T21:40:29.759659+00:00', '--job-id', '67', '--raw', '--subdir', 'DAGS_FOLDER/data_prep_dag.py', '--cfg-path', '/tmp/tmp3xyqi_a_']
+[2024-11-15T21:40:51.858+0000] {standard_task_runner.py:83} INFO - Job 67: Subtask data_cleaning_task
+[2024-11-15T21:40:51.944+0000] {task_command.py:388} INFO - Running <TaskInstance: DAG_Data_Preprocessing.data_cleaning_task manual__2024-11-15T21:40:29.759659+00:00 [running]> on host 8a9381cefcd7
+[2024-11-15T21:40:52.039+0000] {taskinstance.py:1509} INFO - Exporting the following env vars:
+AIRFLOW_CTX_DAG_OWNER=House_Price_Prediction Team
+AIRFLOW_CTX_DAG_ID=DAG_Data_Preprocessing
+AIRFLOW_CTX_TASK_ID=data_cleaning_task
+AIRFLOW_CTX_EXECUTION_DATE=2024-11-15T21:40:29.759659+00:00
+AIRFLOW_CTX_TRY_NUMBER=1
+AIRFLOW_CTX_DAG_RUN_ID=manual__2024-11-15T21:40:29.759659+00:00
+[2024-11-15T21:40:52.286+0000] {data_prep.py:85} INFO - No duplicate rows found.
+[2024-11-15T21:40:52.535+0000] {data_prep_dag.py:101} INFO - Data cleaning completed successfully
+[2024-11-15T21:40:52.536+0000] {python.py:177} INFO - Done. Returned value was: None
+[2024-11-15T21:40:52.548+0000] {taskinstance.py:1323} INFO - Marking task as SUCCESS. dag_id=DAG_Data_Preprocessing, task_id=data_cleaning_task, execution_date=20241115T214029, start_date=20241115T214051, end_date=20241115T214052
+[2024-11-15T21:40:52.571+0000] {local_task_job.py:208} INFO - Task exited with return code 0
+[2024-11-15T21:40:52.609+0000] {taskinstance.py:2578} INFO - 1 downstream tasks scheduled from follow-on schedule check

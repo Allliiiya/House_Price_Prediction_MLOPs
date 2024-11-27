@@ -27,16 +27,27 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r tests/requirements.txt
+        pip install -r Airflow/requirements.txt
 
-    # Step 4: Set PYTHONPATH
+    # # Step 4: Set PYTHONPATH
+    # - name: Set PYTHONPATH
+    #   run: echo "PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/Airflow/dags" >> $GITHUB_ENV
+
+    # - name: Debug PYTHONPATH
+    # run: echo "PYTHONPATH is $PYTHONPATH"
+
+
+    # - name: Set PYTHONPATH
+    #   run: echo "PYTHONPATH=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+
     - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/Airflow/dags" >> $GITHUB_ENV
+    run: echo "PYTHONPATH=${GITHUB_WORKSPACE}/Airflow/dags" >> $GITHUB_ENV
+
+
 
     # Step 5: Run Unit Tests
     - name: Run Unit Tests
-      run: |
-        python -m unittest discover tests
+      run: python -m unittest discover tests
 
 
     # Step 6: Run Unit Tests

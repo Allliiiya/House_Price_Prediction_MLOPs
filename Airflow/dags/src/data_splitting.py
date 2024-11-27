@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
+
 def split_data(encoded_data, test_size):
     """
     Splits the preprocessed encoded dataset into training and testing sets.

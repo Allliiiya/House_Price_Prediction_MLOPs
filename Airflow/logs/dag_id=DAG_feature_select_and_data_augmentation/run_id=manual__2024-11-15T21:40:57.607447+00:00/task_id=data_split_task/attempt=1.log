@@ -1,0 +1,23 @@
+[2024-11-15T21:41:37.384+0000] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DAG_feature_select_and_data_augmentation.data_split_task manual__2024-11-15T21:40:57.607447+00:00 [queued]>
+[2024-11-15T21:41:37.404+0000] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DAG_feature_select_and_data_augmentation.data_split_task manual__2024-11-15T21:40:57.607447+00:00 [queued]>
+[2024-11-15T21:41:37.404+0000] {taskinstance.py:1279} INFO - 
+--------------------------------------------------------------------------------
+[2024-11-15T21:41:37.405+0000] {taskinstance.py:1280} INFO - Starting attempt 1 of 1
+[2024-11-15T21:41:37.409+0000] {taskinstance.py:1281} INFO - 
+--------------------------------------------------------------------------------
+[2024-11-15T21:41:37.513+0000] {taskinstance.py:1300} INFO - Executing <Task(PythonOperator): data_split_task> on 2024-11-15 21:40:57.607447+00:00
+[2024-11-15T21:41:37.520+0000] {standard_task_runner.py:55} INFO - Started process 368 to run task
+[2024-11-15T21:41:37.525+0000] {standard_task_runner.py:82} INFO - Running: ['***', 'tasks', 'run', 'DAG_feature_select_and_data_augmentation', 'data_split_task', 'manual__2024-11-15T21:40:57.607447+00:00', '--job-id', '70', '--raw', '--subdir', 'DAGS_FOLDER/feature_and_augm_dag.py', '--cfg-path', '/tmp/tmpjq1_dgy6']
+[2024-11-15T21:41:37.527+0000] {standard_task_runner.py:83} INFO - Job 70: Subtask data_split_task
+[2024-11-15T21:41:37.697+0000] {task_command.py:388} INFO - Running <TaskInstance: DAG_feature_select_and_data_augmentation.data_split_task manual__2024-11-15T21:40:57.607447+00:00 [running]> on host 8a9381cefcd7
+[2024-11-15T21:41:37.826+0000] {taskinstance.py:1509} INFO - Exporting the following env vars:
+AIRFLOW_CTX_DAG_OWNER=House_Price_Prediction Team
+AIRFLOW_CTX_DAG_ID=DAG_feature_select_and_data_augmentation
+AIRFLOW_CTX_TASK_ID=data_split_task
+AIRFLOW_CTX_EXECUTION_DATE=2024-11-15T21:40:57.607447+00:00
+AIRFLOW_CTX_TRY_NUMBER=1
+AIRFLOW_CTX_DAG_RUN_ID=manual__2024-11-15T21:40:57.607447+00:00
+[2024-11-15T21:41:38.158+0000] {python.py:177} INFO - Done. Returned value was: None
+[2024-11-15T21:41:38.174+0000] {taskinstance.py:1323} INFO - Marking task as SUCCESS. dag_id=DAG_feature_select_and_data_augmentation, task_id=data_split_task, execution_date=20241115T214057, start_date=20241115T214137, end_date=20241115T214138
+[2024-11-15T21:41:38.280+0000] {local_task_job.py:208} INFO - Task exited with return code 0
+[2024-11-15T21:41:38.778+0000] {taskinstance.py:2578} INFO - 0 downstream tasks scheduled from follow-on schedule check
