@@ -7,6 +7,7 @@ import pandas as pd
 from src.data_splitting import split_data
 from src.feature_select import rank_features_by_lasso, select_correlated_features, select_categorical_features_by_rf
 from src.data_augment import augment_data_with_perturbations
+from src.sensitivity_analysis import generate_sensitivity_report
 
 # Define default arguments for your DAG
 default_args = {
@@ -105,23 +106,117 @@ feature_selection_task = PythonOperator(
 )
 
 
-# Data augmentation task
+def sensitivity_analysis_callable(**kwargs):
+    """Task to perform sensitivity analysis including SHAP values on selected features."""
+    try:
+        ti = kwargs['ti']
+        
+        # Get encoded data from conf
+        conf = kwargs.get("dag_run").conf
+        encoded_data_json = conf.get('encoded_result')
+        
+        # Get features from feature selection task
+        combined_features = ti.xcom_pull(task_ids='feature_selection_task', key='combined_features')
+        final_features = ti.xcom_pull(task_ids='feature_selection_task', key='final_features')
+        
+        if encoded_data_json is None or combined_features is None:
+            raise ValueError("Required data not found in XCom")
+        
+        # Load the encoded data
+        data = pd.read_json(encoded_data_json)
+        
+        # Generate sensitivity report for both combined and final features
+        combined_features_report = generate_sensitivity_report(
+            data=data,
+            features=combined_features,
+            target='SalePrice'
+        )
+        
+        final_features_report = generate_sensitivity_report(
+            data=data,
+            features=final_features,
+            target='SalePrice'
+        )
+        
+        # Prepare reports for XCom (excluding SHAP values due to serialization limitations)
+        sensitivity_results = {
+            'combined_features_analysis': {
+                'feature_importance': combined_features_report['feature_importance'].to_json(orient='split'),
+                'shap_summary': combined_features_report['shap_analysis']['shap_summary'].to_json(orient='split'),
+                'feature_sensitivity': combined_features_report['feature_sensitivity'].to_json(orient='split'),
+                'feature_stability': combined_features_report['feature_stability'].to_json(orient='split'),
+                'baseline_model_score': float(combined_features_report['baseline_model_score'])
+            },
+            'final_features_analysis': {
+                'feature_importance': final_features_report['feature_importance'].to_json(orient='split'),
+                'shap_summary': final_features_report['shap_analysis']['shap_summary'].to_json(orient='split'),
+                'feature_sensitivity': final_features_report['feature_sensitivity'].to_json(orient='split'),
+                'feature_stability': final_features_report['feature_stability'].to_json(orient='split'),
+                'baseline_model_score': float(final_features_report['baseline_model_score'])
+            }
+        }
+        
+        # Push results to XCom
+        ti.xcom_push(key='sensitivity_results', value=sensitivity_results)
+        
+        # Use SHAP values to identify highly important features
+        shap_important_features = final_features_report['shap_analysis']['shap_summary'][
+            final_features_report['shap_analysis']['shap_summary']['mean_shap_value'] > 
+            final_features_report['shap_analysis']['shap_summary']['mean_shap_value'].median()
+        ]['feature'].tolist()
+        
+        # Combine SHAP importance with stability scores
+        stable_and_important_features = list(set(shap_important_features).intersection(
+            final_features_report['feature_stability'][
+                final_features_report['feature_stability']['stability_score'] > 0.5
+            ]['feature'].tolist()
+        ))
+        
+        # Push important features to XCom
+        ti.xcom_push(key='stable_and_important_features', value=stable_and_important_features)
+        
+        logging.info("Sensitivity analysis with SHAP completed successfully")
+        
+    except Exception as e:
+        logging.error(f"Error in sensitivity analysis task: {str(e)}")
+        raise
+
+# Create the sensitivity analysis task operator
+sensitivity_analysis_task = PythonOperator(
+    task_id='sensitivity_analysis_task',
+    python_callable=sensitivity_analysis_callable,
+    provide_context=True,
+    dag=dag2,
+)
+
+# Update data augmentation task to use sensitivity results
 def data_augmentation_callable(**kwargs):
-    """Task to augment data."""
+    """Task to augment data using sensitivity analysis results."""
     ti = kwargs['ti']
     train_data_json = ti.xcom_pull(task_ids='data_split_task', key='train_data')
     final_features = ti.xcom_pull(task_ids='feature_selection_task', key='final_features')
     combined_features = ti.xcom_pull(task_ids='feature_selection_task', key='combined_features')
+    highly_stable_features = ti.xcom_pull(task_ids='sensitivity_analysis_task', key='highly_stable_features')
+    
     if train_data_json is None or final_features is None:
         raise ValueError("Required data not found in XCom")
+    
     train_data = pd.read_json(train_data_json, orient='split')
+    
+    # Use highly stable features for augmentation if available
+    features_for_augmentation = highly_stable_features if highly_stable_features else final_features
+    
     augmented_data = augment_data_with_perturbations(
-        train_data, final_features, perturbation_percentage=0.02
+        train_data, 
+        features_for_augmentation,
+        perturbation_percentage=0.02
     )
+    
     ti.xcom_push(key='augmented_data', value=augmented_data.to_json(orient='split'))
     ti.xcom_push(key='combined_features', value=combined_features)
+    ti.xcom_push(key='features_used_for_augmentation', value=features_for_augmentation)
 
-
+# Update the data augmentation task operator
 data_augmentation_task = PythonOperator(
     task_id='data_augmentation_task',
     python_callable=data_augmentation_callable,
@@ -129,26 +224,32 @@ data_augmentation_task = PythonOperator(
     dag=dag2,
 )
 
-
+# Update trigger_dag3 to include sensitivity results
 def trigger_dag3_with_conf(**kwargs):
     ti = kwargs['ti']
-    # Retrieve `augmented_data` and `test_data` from XCom
     augmented_data = ti.xcom_pull(task_ids='data_augmentation_task', key='augmented_data')
     test_data = ti.xcom_pull(task_ids='data_split_task', key='test_data')
     combined_features = ti.xcom_pull(task_ids='feature_selection_task', key='combined_features')
+    sensitivity_results = ti.xcom_pull(task_ids='sensitivity_analysis_task', key='sensitivity_results')
+    features_used_for_augmentation = ti.xcom_pull(task_ids='data_augmentation_task', key='features_used_for_augmentation')
+    
     if augmented_data is None or test_data is None:
-        raise ValueError("Required data not found in XCom for 'augmented_data' or 'test_data'")
-    # Dynamically set up TriggerDagRunOperator to trigger `dag3`
+        raise ValueError("Required data not found in XCom")
+    
     TriggerDagRunOperator(
         task_id="trigger_model_training_and_evaluation",
-        trigger_dag_id="DAG_Model_Training_and_Evaluation",  # The ID of DAG 3
-        conf={"augmented_data": augmented_data, "test_data": test_data,
-              "combined_features": combined_features, },  # Pass data to DAG 3
-        trigger_rule="all_success",  # Only trigger if all previous tasks in DAG2 are successful
-    ).execute(kwargs)  # Pass Airflow context to execute method
+        trigger_dag_id="DAG_Model_Training_and_Evaluation",
+        conf={
+            "augmented_data": augmented_data, 
+            "test_data": test_data,
+            "combined_features": combined_features,
+            "sensitivity_results": sensitivity_results,
+            "features_used_for_augmentation": features_used_for_augmentation
+        },
+        trigger_rule="all_success",
+    ).execute(kwargs)
 
-
-# Trigger the DAG3 from DAG2
+# Update the trigger_dag3 task operator
 trigger_dag3_task = PythonOperator(
     task_id="trigger_model_training_and_evaluation",
     python_callable=trigger_dag3_with_conf,
@@ -156,5 +257,5 @@ trigger_dag3_task = PythonOperator(
     dag=dag2,
 )
 
-# Set dependencies
-data_split_task >> feature_selection_task >> data_augmentation_task >> trigger_dag3_task
+# The task dependencies remain the same
+data_split_task >> feature_selection_task >> sensitivity_analysis_task >> data_augmentation_task >> trigger_dag3_task
