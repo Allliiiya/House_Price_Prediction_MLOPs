@@ -1,2 +1,0 @@
-['remote houseprice']
-    url = gs://bucket_data_mlopsteam2

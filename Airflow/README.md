@@ -268,3 +268,95 @@ kill <PID>
 
 ---
 
+# Troubleshooting `init-db.sh` Script in Docker Compose
+
+This guide helps you troubleshoot issues related to the execution of the `init-db.sh` script in a Docker Compose setup, specifically for initializing a PostgreSQL database.
+
+## Common Issues and Resolutions
+
+### 1. File Permissions
+Ensure the `init-db.sh` file has executable permissions.
+
+**Command to check permissions:**  
+```bash
+ls -l init-db.sh
+```
+
+Expected output:  
+```bash
+-rwxr-xr-x 1 user group size date init-db.sh
+```
+
+If permissions are incorrect, run:  
+```bash
+chmod +x init-db.sh
+```
+
+### 2. Line Endings
+Ensure the script has Unix line endings. Windows-style line endings can cause syntax errors in the container.
+
+**Convert to Unix format:**  
+Install `dos2unix` (if not already installed):  
+```bash
+sudo apt install dos2unix
+```
+
+Run the conversion:  
+```bash
+dos2unix init-db.sh
+```
+
+### 3. Correct Placement in Docker Compose
+Ensure the script is mounted correctly in the `docker-compose.yml` file.
+
+Example:  
+```yaml
+services:
+  postgres:
+    volumes:
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+```
+
+### 4. Script Debugging
+If the script fails to execute, check the logs of the PostgreSQL container:  
+```bash
+docker logs <postgres-container-id>
+```
+
+Manually execute the script inside the container to debug errors:  
+```bash
+docker exec -it <postgres-container-id> bash
+bash /docker-entrypoint-initdb.d/init-db.sh
+```
+
+### 5. Confirm Database Initialization
+Check if the `mlflow` database was successfully created:  
+```bash
+docker exec -it <postgres-container-id> psql -U <username>
+\l
+```
+
+The output should list `mlflow` as one of the databases.
+
+## Sample `init-db.sh` Script
+```bash
+#!/bin/bash
+# Check if the database has already been initialized
+if [ ! -f "/var/lib/postgresql/data/.db_initialized" ]; then
+  echo "Initializing database..."
+  psql -U airflow -c "CREATE DATABASE mlflow;"
+  psql -U airflow -c "GRANT ALL PRIVILEGES ON DATABASE mlflow TO airflow;"
+  touch /var/lib/postgresql/data/.db_initialized
+else
+  echo "Database already initialized."
+fi
+```
+
+## Notes
+- Ensure the `init-db.sh` script is idempotent to avoid issues during multiple runs.
+- The `.db_initialized` file acts as a flag to ensure the database initialization runs only once.
+
+## Contact
+If you encounter further issues, consult the Docker and PostgreSQL documentation or reach out for support.
+
+
