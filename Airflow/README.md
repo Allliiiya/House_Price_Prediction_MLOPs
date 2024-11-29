@@ -332,7 +332,8 @@ bash /docker-entrypoint-initdb.d/init-db.sh
 ### 5. Confirm Database Initialization
 Check if the `mlflow` database was successfully created:  
 ```bash
-docker exec -it <postgres-container-id> psql -U <username>
+#docker exec -it <postgres-container-id> psql -U <username>
+docker exec -it <postgres-container-name> psql -U airflow
 \l
 ```
 
