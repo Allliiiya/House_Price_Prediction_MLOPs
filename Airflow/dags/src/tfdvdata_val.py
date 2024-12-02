@@ -2,10 +2,39 @@ import os
 import tensorflow_data_validation as tfdv
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from google.cloud import storage
+import tempfile
+from google.oauth2 import service_account # type: ignore
+from airflow.models import Variable
+
+def save_schema_to_gcs(schema, bucket_name, schema_path_in_gcs):
+    """Serialize schema to pbtxt and upload to GCS."""
+    # Initialize the GCS client
+    # Fetch the credentials from Airflow Variables
+    gcp_credentials = Variable.get("GOOGLE_APPLICATION_CREDENTIALS", deserialize_json=True)
+    # Authenticate using the fetched credentials
+    credentials = service_account.Credentials.from_service_account_info(gcp_credentials)
+    
+    # Create a storage client with specified credentials
+    storage_client = storage.Client(credentials=credentials)
+    #storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(schema_path_in_gcs)
+
+    # Use a temporary file to store the schema before uploading
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+        temp_path = temp_file.name
+        tfdv.write_schema_text(schema, temp_path)
+
+    # Upload the schema from the temporary file to GCS
+    blob.upload_from_filename(temp_path)
+    print(f"Schema uploaded to gs://{bucket_name}/{schema_path_in_gcs}")
 
 def data_validation_tfdv(data):
     # Set up output directory
-    output_dir = "/opt/airflow/data/validation_reports"
+    #output_dir = "/opt/airflow/data/validation_reports"
+    #os.makedirs(output_dir, exist_ok=True)
+    output_dir = "/tmp/validation_reports"
     os.makedirs(output_dir, exist_ok=True)
 
     # Load data and split into training and evaluation sets
@@ -48,7 +77,15 @@ def data_validation_tfdv(data):
 
     # Infer schema from training data statistics
     schema = tfdv.infer_schema(statistics=train_stats)
-    
+    # Upload the schema to GCS
+    # Define your GCS bucket and schema path
+    bucket_name = "bucket_data_mlopsteam2"  # Your GCS bucket
+    schema_path_in_gcs = "schema/schema.pbtxt"  # Desired GCS path
+    # Save schema pbtxt directly to GCS
+    # Save schema to GCS in pbtxt format
+    save_schema_to_gcs(schema, bucket_name, schema_path_in_gcs)
+    print(f"Schema saved directly to GCS: gs://{bucket_name}/{schema_path_in_gcs}")
+
     # Validate evaluation stats against the training schema
     initial_anomalies = tfdv.validate_statistics(statistics=eval_stats, schema=schema)
     
