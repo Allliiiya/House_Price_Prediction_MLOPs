@@ -4,7 +4,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from src.data_prep import data_preprocessing, load_data, data_clean_test
-from src.tfdvdata_val import data_validation_tfdv
+from src.datashift import data_validation_tfdv
 
 
 # Define default arguments for your DAG
