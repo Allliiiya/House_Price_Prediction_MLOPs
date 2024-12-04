@@ -36,15 +36,7 @@ This project is a web application for predicting house prices using a trained ma
    ```
 
 5. **Ensure the model file is in the correct path**:
-   - Verify that the model file (
-
-model.pkl
-
-) is located at the path specified in 
-
-app.py
-
-:
+   - Verify that the model file (model.pkl) is located at the path specified in app.py:
      ```python
      MODEL_PATH = '/Users/skyleraliya/House_Price_Prediction_MLOPs/Airflow/mlruns/3/a2f6a0ae32ba46369731c394a83ac4d0/artifacts/model/model.pkl'
      ```
@@ -53,13 +45,9 @@ app.py
 
 1. **Run the Flask app**:
    ```sh
-   python3 -m venv venv
-
-   source venv/bin/activate
 
    python app.py
 
-   
    ```
 
 2. **Access the UI frontend**:
