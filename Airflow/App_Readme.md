@@ -1,4 +1,3 @@
-```markdown
 # House Price Prediction
 
 This project is a web application for predicting house prices using a trained machine learning model. The application is built using Flask for the backend and HTML/CSS for the frontend.
