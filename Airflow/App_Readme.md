@@ -54,7 +54,13 @@ app.py
 
 1. **Run the Flask app**:
    ```sh
+   python3 -m venv venv
+
+   source venv/bin/activate
+
    python app.py
+
+   
    ```
 
 2. **Access the UI frontend**:
@@ -71,6 +77,38 @@ app.py
 3. **View the prediction**:
    - The predicted house price will be displayed on the page.
 
+   ## Example Input and Output
+
+   Here is an example of the input data and the predicted house price:
+
+   **Input Data**:
+   ```
+   Bldg Type: Twnhs
+   Overall Qual: 6
+   Year Remod/Add: 1971
+   Lot Frontage: 21
+   Open Porch SF: 0
+   Lot Area: 1680
+   Full Bath: 1
+   Wood Deck SF: 275
+   Gr Liv Area: 987
+   BsmtFin SF 1: 156
+   Total Bsmt SF: 483
+   1st Flr SF: 483
+   Garage Area: 264
+   Year Built: 1971
+   Bedroom AbvGr: 2
+   Mas Vnr Area: 504
+   Fireplaces: 0
+   SalePrice: 96000
+   ```
+
+   **Predicted Price**: `$208,355.64`
+
+
+   ## Testing Data
+
+   Testing data can be accessed [here](https://docs.google.com/spreadsheets/d/1HCXG7RtkvwsvU5du14YxQw2HysRhICMNrrR1gENIuPI/edit?usp=sharing).
 ## Troubleshooting
 
 - If you encounter any issues, check the terminal for error messages and ensure all dependencies are installed correctly.
