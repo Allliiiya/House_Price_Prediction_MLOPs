@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>House Price Prediction</title>
+  <style>
+    /* Previous styles remain the same */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f4f9;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 50px auto;
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .layout-container {
+      display: flex;
+      gap: 30px;
+    }
+    .sidebar {
+      flex: 0 0 300px;
+    }
+    .main-content {
+      flex: 1;
+    }
+    .form-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .form-control {
+      flex: 1 1 calc(33% - 10px);
+      min-width: 150px;
+    }
+    .sidebar .form-control {
+      flex: 1 1 100%;
+    }
+    label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .description {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    input[type="number"], select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    select {
+      background-color: white;
+    }
+    .sidebar-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .sidebar-card h3 {
+      margin-top: 0;
+      color: #333;
+      font-size: 1.1em;
+      margin-bottom: 15px;
+    }
+    button {
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .submit-button {
+      width: 100%;
+      margin-top: 20px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+      color: #666;
+    }
+    .prediction-result {
+      text-align: center;
+      margin-top: 20px;
+      padding: 20px;
+      background: #e9ecef;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>House Price Prediction</h1>
+  
+  <form method="POST">
+    <div class="layout-container">
+      <!-- Sidebar with Building Type and Overall Quality -->
+      <div class="sidebar">
+        <div class="sidebar-card">
+          <h3>Property Details</h3>
+          <div class="form-control">
+            <label for="building-type">Building Type</label>
+            <div class="description">Select the type of building</div>
+            <select name="building-type" id="building-type" onchange="updateBuildingType()" required>
+              <option value="1Fam" selected>Single Family</option>
+              <option value="2fmCon">Two-family Conversion</option>
+              <option value="Duplex">Duplex</option>
+              <option value="TwnhsE">Townhouse Inside</option>
+              <option value="Twnhs">Townhouse End</option>
+            </select>
+          </div>
+
+          <!-- Hidden inputs for building type values -->
+          <input type="hidden" name="Bldg_Type_2fmCon" id="Bldg_Type_2fmCon" value="0">
+          <input type="hidden" name="Bldg_Type_TwnhsE" id="Bldg_Type_TwnhsE" value="0">
+          <input type="hidden" name="Bldg_Type_1Fam" id="Bldg_Type_1Fam" value="1">
+          <input type="hidden" name="Bldg_Type_Twnhs" id="Bldg_Type_Twnhs" value="0">
+          <input type="hidden" name="Bldg_Type_Duplex" id="Bldg_Type_Duplex" value="0">
+        </div>
+
+        <div class="sidebar-card">
+          <div class="form-control">
+            <label for="Overall_Qual">Overall Quality</label>
+            <div class="description">Overall material and finish quality</div>
+            <select name="Overall_Qual" id="Overall_Qual" required>
+              <option value="1">1 - Poor</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7" selected>7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10 - Excellent</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main content with other inputs -->
+      <div class="main-content">
+        <div class="form-group">
+          <!-- All other numeric inputs remain the same -->
+          <div class="form-control">
+            <label for="Year_Remod_Add">Year Remod/Add</label>
+            <div class="description">Year of remodeling or additions</div>
+            <input type="number" name="Year_Remod_Add" id="Year_Remod_Add" value="2000" required>
+          </div>
+          
+          <div class="form-control">
+            <label for="Lot_Frontage">Lot Frontage</label>
+            <div class="description">Linear feet of street connected to property</div>
+            <input type="number" name="Lot_Frontage" id="Lot_Frontage" value="80" required>
+          </div>
+
+          <!-- Continue with all other numeric inputs... -->
+          <div class="form-control">
+            <label for="Open_Porch_SF">Open Porch SF</label>
+            <div class="description">Open porch area in square feet</div>
+            <input type="number" name="Open_Porch_SF" id="Open_Porch_SF" value="100" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Lot_Area">Lot Area</label>
+            <div class="description">Total lot size in square feet</div>
+            <input type="number" name="Lot_Area" id="Lot_Area" value="9600" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Full_Bath">Full Bath</label>
+            <div class="description">Full bathrooms above grade</div>
+            <input type="number" name="Full_Bath" id="Full_Bath" value="2" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Wood_Deck_SF">Wood Deck SF</label>
+            <div class="description">Wood deck area in square feet</div>
+            <input type="number" name="Wood_Deck_SF" id="Wood_Deck_SF" value="200" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Gr_Liv_Area">Ground Living Area</label>
+            <div class="description">Above-grade living area square feet</div>
+            <input type="number" name="Gr_Liv_Area" id="Gr_Liv_Area" value="1710" required>
+          </div>
+
+          <div class="form-control">
+            <label for="BsmtFin_SF_1">Basement Finished SF</label>
+            <div class="description">Finished basement area (Type 1)</div>
+            <input type="number" name="BsmtFin_SF_1" id="BsmtFin_SF_1" value="706" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Total_Bsmt_SF">Total Basement SF</label>
+            <div class="description">Total basement area</div>
+            <input type="number" name="Total_Bsmt_SF" id="Total_Bsmt_SF" value="996" required>
+          </div>
+
+          <div class="form-control">
+            <label for="1st_Flr_SF">1st Floor SF</label>
+            <div class="description">First floor square feet</div>
+            <input type="number" name="1st_Flr_SF" id="1st_Flr_SF" value="996" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Garage_Area">Garage Area</label>
+            <div class="description">Garage size in square feet</div>
+            <input type="number" name="Garage_Area" id="Garage_Area" value="548" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Year_Built">Year Built</label>
+            <div class="description">Original construction year</div>
+            <input type="number" name="Year_Built" id="Year_Built" value="1976" required>
+          </div>
+
+          <div class="form-control">
+            <label for="TotRms_AbvGrd">Total Rooms Above Grade</label>
+            <div class="description">Total rooms excluding bathrooms</div>
+            <input type="number" name="TotRms_AbvGrd" id="TotRms_AbvGrd" value="7" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Mas_Vnr_Area">Masonry Veneer Area</label>
+            <div class="description">Masonry veneer area in square feet</div>
+            <input type="number" name="Mas_Vnr_Area" id="Mas_Vnr_Area" value="0" required>
+          </div>
+
+          <div class="form-control">
+            <label for="Fireplaces">Fireplaces</label>
+            <div class="description">Number of fireplaces</div>
+            <input type="number" name="Fireplaces" id="Fireplaces" value="1" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="submit-button">Predict House Price</button>
+
+    <!-- Prediction Result -->
+    {% if prediction %}
+    <div class="prediction-result">
+      <h2>Predicted Price: ${{ prediction }}</h2>
+    </div>
+    {% elif error %}
+    <div class="prediction-result" style="background: #ffebee;">
+      <h2 style="color: #c62828;">{{ error }}</h2>
+    </div>
+    {% endif %}
+  </form>
+</div>
+
+<footer>
+  &copy; 2024 House Price Prediction App
+</footer>
+
+<script>
+function updateBuildingType() {
+  // Reset all building type values to 0
+  document.getElementById('Bldg_Type_2fmCon').value = "0";
+  document.getElementById('Bldg_Type_TwnhsE').value = "0";
+  document.getElementById('Bldg_Type_1Fam').value = "0";
+  document.getElementById('Bldg_Type_Twnhs').value = "0";
+  document.getElementById('Bldg_Type_Duplex').value = "0";
+
+  // Get selected building type
+  const selectedType = document.getElementById('building-type').value;
+  
+  // Set the corresponding type to 1
+  document.getElementById('Bldg_Type_' + selectedType).value = "1";
+}
+</script>
+
+</body>
+</html>
+
+
+
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Prediction</title>
+</head>
+<body>
+    <h1>House Price Prediction</h1>
+    <form method="POST">
+        <label for="Bldg_Type_TwnhsE">Bldg Type TwnhsE:</label>
+        <input type="number" step="0.01" name="Bldg_Type_TwnhsE" required><br>
+
+        <label for="Full_Bath">Full Bath:</label>
+        <input type="number" step="0.01" name="Full_Bath" required><br>
+
+        <label for="TotRms_AbvGrd">TotRms AbvGrd:</label>
+        <input type="number" step="0.01" name="TotRms_AbvGrd" required><br>
+
+        <label for="Bldg_Type_2fmCon">Bldg Type 2fmCon:</label>
+        <input type="number" step="0.01" name="Bldg_Type_2fmCon" required><br>
+
+        <label for="Lot_Frontage">Lot Frontage:</label>
+        <input type="number" step="0.01" name="Lot_Frontage" required><br>
+
+        <label for="Mas_Vnr_Area">Mas Vnr Area:</label>
+        <input type="number" step="0.01" name="Mas_Vnr_Area" required><br>
+
+        <label for="Bldg_Type_1Fam">Bldg Type 1Fam:</label>
+        <input type="number" step="0.01" name="Bldg_Type_1Fam" required><br>
+
+        <label for="1st_Flr_SF">1st Flr SF:</label>
+        <input type="number" step="0.01" name="1st_Flr_SF" required><br>
+
+        <label for="Bldg_Type_Twnhs">Bldg Type Twnhs:</label>
+        <input type="number" step="0.01" name="Bldg_Type_Twnhs" required><br>
+
+        <label for="Open_Porch_SF">Open Porch SF:</label>
+        <input type="number" step="0.01" name="Open_Porch_SF" required><br>
+
+        <label for="Overall_Qual">Overall Qual:</label>
+        <input type="number" step="0.01" name="Overall_Qual" required><br>
+
+        <label for="Year_Built">Year Built:</label>
+        <input type="number" step="0.01" name="Year_Built" required><br>
+
+        <label for="Fireplaces">Fireplaces:</label>
+        <input type="number" step="0.01" name="Fireplaces" required><br>
+
+        <label for="Total_Bsmt_SF">Total Bsmt SF:</label>
+        <input type="number" step="0.01" name="Total_Bsmt_SF" required><br>
+
+        <label for="Garage_Area">Garage Area:</label>
+        <input type="number" step="0.01" name="Garage_Area" required><br>
+
+        <label for="Gr_Liv_Area">Gr Liv Area:</label>
+        <input type="number" step="0.01" name="Gr_Liv_Area" required><br>
+
+        <label for="BsmtFin_SF_1">BsmtFin SF 1:</label>
+        <input type="number" step="0.01" name="BsmtFin_SF_1" required><br>
+
+        <label for="Wood_Deck_SF">Wood Deck SF:</label>
+        <input type="number" step="0.01" name="Wood_Deck_SF" required><br>
+
+        <label for="Year_Remod_Add">Year Remod/Add:</label>
+        <input type="number" step="0.01" name="Year_Remod_Add" required><br>
+
+        <label for="Lot_Area">Lot Area:</label>
+        <input type="number" step="0.01" name="Lot_Area" required><br>
+
+        <label for="Bldg_Type_Duplex">Bldg Type Duplex:</label>
+        <input type="number" step="0.01" name="Bldg_Type_Duplex" required><br>
+
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if prediction %}
+        <h2>Predicted Price: {{ prediction }}</h2>
+    {% elif error %}
+        <h2 style="color: red;">{{ error }}</h2>
+    {% endif %}
+</body>
+</html>
+-->
