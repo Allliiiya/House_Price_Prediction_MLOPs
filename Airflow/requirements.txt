@@ -48,3 +48,4 @@ google-cloud-bigquery
 google-auth
 kneed
 google-cloud-storage
+dill
