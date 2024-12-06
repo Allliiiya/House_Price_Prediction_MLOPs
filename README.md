@@ -32,12 +32,44 @@ The project focuses on developing an accurate, condition-aware model for house p
 
 ```
 House_Price_Prediction_MLOps/
-├── Airflow/               # DAGs and orchestration scripts
-├── Methodology/           # Model development documentation
-├── project_dvc/           # DVC configuration and data versioning
-├── tests/                 # Unit tests and validation scripts
-├── .gitignore            
-└── README.md             
+├── .github/workflows/            # GitHub Actions workflows
+│   ├── ci-unittest.yml           # CI pipeline for unit tests
+│   └── lightweight_dag_test.yml  # Lightweight DAG testing
+├── Airflow/                      # Airflow configuration and DAGs
+│   ├── dags/                     # Airflow DAG definitions
+│   │   ├── __pycache__/
+│   │   ├── data/                 # Data files for DAGs
+│   │   ├── src/                  # Source code for DAG tasks
+│   │   │   ├── __init__.py
+│   │   │   ├── data_prep_dag.py  # Data preparation pipeline
+│   │   │   ├── feature_and_augm_dag.py  # Feature engineering
+│   │   │   ├── mlflow_model_deploy_dag.py  # Model deployment
+│   │   │   └── modeling_and_eval_dag.py  # Model training
+│   │   └── logs/                 # Airflow logs
+│   ├── mlruns/                   # MLflow tracking
+│   │   └── model/               
+│   │       └── feature_importance.csv
+│   ├── scripts/                  # Utility scripts
+│   ├── .env                      # Environment variables
+│   ├── README.md                 # Airflow documentation
+│   ├── __init__.py
+│   ├── docker-compose.yaml       # Docker composition
+│   └── requirements.txt          # Python dependencies
+├── Methodology/                  # Project methodology docs
+├── project_dvc/                  # DVC configuration
+│   ├── .dvc/                     # DVC settings
+│   │   ├── config.txt           
+│   │   └── gitignore.txt       
+│   ├── data/                     # Version-controlled data
+│   │   ├── README.md           
+│   │   └── dvcignore.txt       
+│   └── tests/                    # Project tests
+│       ├── __init__.py         
+│       ├── test_dag.py         
+│       ├── .DS_Store          
+│       ├── .gitignore         
+│       └── README.md           
+└── requirements.txt              # Project dependencies
 ```
 
 ## Installation and Setup
@@ -158,7 +190,6 @@ The trained model has been deployed and is accessible through a web interface:
 - Krishna Priya Gitalaxmi: gitakrishnapriya@gmail.com
 - Qi An: an.qi2@northeastern.edu
 - Ziqi Li: zql04150415@gmail.com
-
 
 # House_Price_Prediction_MLOps
 
