@@ -1,6 +1,6 @@
 # House Price Prediction MLOps Project
 
-This project implements an advanced Machine Learning Operations (MLOps) pipeline for predicting house prices. It integrates traditional property features with novel house condition data, utilizing Google Cloud Platform (GCP) for data management, Apache Airflow for orchestration, and MLflow for experiment tracking. The app can be access here: [House Price Prediction App](https://house-price-app-752005993878.us-east1.run.app)
+This project implements an advanced Machine Learning Operations (MLOps) pipeline for predicting house prices. It integrates traditional property features with novel house condition data, utilizing Google Cloud Platform (GCP) for data management, Apache Airflow for orchestration, and MLflow for experiment tracking. The app can be access here: [House Price Prediction App](https://house-price-app-752005993878.us-east1.run.app) 
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
