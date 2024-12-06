@@ -132,6 +132,17 @@ Three primary models are implemented:
    - Combined L1/L2 regularization
    - Handles correlated features
 
+### Deployed Application
+
+The trained model has been deployed and is accessible through a web interface:
+- **Application URL**: [House Price Prediction App](https://house-price-app-752005993878.us-east1.run.app)
+- **Deployment Platform**: Google Cloud Run
+- **Features**:
+  - Interactive web interface for price predictions
+  - Real-time model inference
+  - Comprehensive feature input options
+  - Instant results display
+
 ## Contributing
 
 1. Fork the repository
