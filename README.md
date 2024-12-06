@@ -175,7 +175,8 @@ The trained model has been deployed and is accessible through a web interface:
   - Comprehensive feature input options
   - Instant results display
  
-- **Demo**
+- **Demo**:
+  
   ![0d7f114a-959d-4607-8bb0-80d7b9b018a8](https://github.com/user-attachments/assets/219f6906-81d0-4745-9ca4-ca3142f2fb65)
 
 
