@@ -1,3 +1,154 @@
+# House Price Prediction MLOps Project
+
+This project implements an advanced Machine Learning Operations (MLOps) pipeline for predicting house prices. It integrates traditional property features with novel house condition data, utilizing Google Cloud Platform (GCP) for data management, Apache Airflow for orchestration, and MLflow for experiment tracking.
+
+## Table of Contents
+1. [Project Overview](#project-overview)
+2. [Key Features](#key-features)
+3. [Directory Structure](#directory-structure)
+4. [Installation and Setup](#installation-and-setup)
+5. [Quick Start Guide](#quick-start-guide)
+6. [Pipeline Components](#pipeline-components)
+7. [Data Validation and Drift Detection](#data-validation-and-drift-detection)
+8. [Methodology](#methodology)
+9. [Model Development](#model-development)
+10. [Contributing](#contributing)
+11. [Contact Information](#contact-information)
+
+## Project Overview
+
+The project focuses on developing an accurate, condition-aware model for house price prediction using advanced MLOps practices. It implements automated data processing, model training, and monitoring pipelines while ensuring code quality through continuous integration and testing.
+
+## Key Features
+
+- **Data Processing Pipeline**: Automated ETL processes using Apache Airflow
+- **Model Training**: Implements Linear Regression, Random Forest, and Elastic Net models
+- **MLflow Integration**: Comprehensive experiment tracking and model versioning
+- **Automated Testing**: Continuous integration using GitHub Actions
+- **Data Validation**: Real-time data quality monitoring using TensorFlow Data Validation
+- **Drift Detection**: Automated detection of data drift using statistical tests
+
+## Directory Structure
+
+```
+House_Price_Prediction_MLOps/
+├── Airflow/               # DAGs and orchestration scripts
+├── Methodology/           # Model development documentation
+├── project_dvc/           # DVC configuration and data versioning
+├── tests/                 # Unit tests and validation scripts
+├── .gitignore            
+└── README.md             
+```
+
+## Installation and Setup
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/your_username/House_Price_Prediction_MLOps.git
+   cd House_Price_Prediction_MLOps
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Configure Environment**
+   - Set up GCP credentials in `.env`
+   - Initialize GCP service account
+   - Configure MLflow tracking URI
+
+4. **Initialize Services**
+   - Start Airflow (see Airflow README)
+   - Configure MLflow UI
+   - Set up DVC remote storage
+
+## Quick Start Guide
+
+1. **Data Pipeline**
+   ```bash
+   # Initialize DVC
+   dvc init
+   dvc add data/raw/ames_housing.csv
+   dvc push
+
+   # Start Airflow webserver
+   airflow webserver
+   ```
+
+2. **Access Services**
+   - Airflow UI: `http://localhost:8080`
+   - MLflow UI: `http://localhost:5000`
+
+## Pipeline Components
+
+### Data Processing
+- Data validation using TensorFlow Data Validation
+- Feature engineering and selection
+- Data augmentation techniques
+
+### Model Training
+- Multiple model architectures:
+  - Linear Regression (baseline)
+  - Random Forest
+  - Elastic Net
+- Hyperparameter optimization
+- Performance tracking via MLflow
+
+### Monitoring
+- Real-time data drift detection
+- Model performance monitoring
+- Automated email notifications
+
+## Data Validation and Drift Detection
+
+The project implements automated data quality checks:
+
+- **Schema Validation**: Using TensorFlow Data Validation
+- **Drift Detection**: Statistical tests for distribution changes
+- **Quality Monitoring**: Real-time checks via Cloud Functions
+
+## Methodology
+
+See `Methodology/` directory for detailed documentation on:
+- Data preprocessing steps
+- Feature engineering techniques
+- Model selection criteria
+- Evaluation metrics
+
+## Model Development
+
+Three primary models are implemented:
+
+1. **Linear Regression**
+   - Baseline model
+   - Feature importance analysis
+
+2. **Random Forest**
+   - Non-linear relationship handling
+   - Robust feature importance
+
+3. **Elastic Net**
+   - Combined L1/L2 regularization
+   - Handles correlated features
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit changes
+4. Push to the branch
+5. Submit a pull request
+
+## Contact Information
+
+- Aliya: 26aly000@gmail.com
+- Changping Chen: champing1409@gmail.com
+- Krishna Priya Gitalaxmi: gitakrishnapriya@gmail.com
+- Qi An: an.qi2@northeastern.edu
+- Ziqi Li: zql04150415@gmail.com
+
+
 # House_Price_Prediction_MLOps
 
 This project implements an advanced Machine Learning Operations (MLOps) pipeline for predicting house prices. It integrates traditional property features (location, size, and number of rooms) with a novel feature: **house condition**. The pipeline uses Google Cloud Platform (GCP) for data management, Apache Airflow for orchestration, and Data Version Control (DVC) for tracking data versions and model iterations.
